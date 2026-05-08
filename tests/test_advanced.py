@@ -1,7 +1,7 @@
 import sys
 from unittest.mock import MagicMock
 
-# Mock pyautogui before it's imported by anything
+# Mock GUI libraries for tests that don't need them
 sys.modules['pyautogui'] = MagicMock()
 sys.modules['PIL'] = MagicMock()
 sys.modules['PIL.ImageGrab'] = MagicMock()
@@ -42,7 +42,9 @@ class TestAdvancedFeatures(unittest.TestCase):
     def test_input_click(self):
         import pyautogui
         input_control.click(10, 20)
-        pyautogui.click.assert_called_once_with(10, 20)
+        # In current implementation, click(x, y) calls move_to(x, y) then click()
+        pyautogui.moveTo.assert_called_once_with(10, 20, duration=unittest.mock.ANY)
+        pyautogui.click.assert_called_once()
 
     def test_ai_click_command(self):
         with unittest.mock.patch('editor_actions.click_ui_element') as mock_click_ui:
