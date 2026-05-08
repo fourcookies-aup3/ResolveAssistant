@@ -19,28 +19,38 @@ def create_new_project(project_name):
             return False
 
     print(f"Attempting to create project '{project_name}' via UI automation.")
-    input_control.hotkey('shift', '1') # Project Manager
-    time.sleep(1)
+    input_control.hotkey('shift', '1') # Open Project Manager
+    time.sleep(2)
 
-    # Tier 1: Try Vision
+    # Tier 1: Vision
     if click_ui_element('new_project_button'):
         input_control.type_text(project_name)
         input_control.press_key('enter')
         time.sleep(2)
         return True
 
-    # Tier 2: Try Hotkey (Ctrl+N / Cmd+N is standard for New Project in many views)
-    print("Vision failed. Trying hotkey (Ctrl+N) fallback...")
+    # Tier 2: Hotkey Fallback
+    print("Vision failed. Trying hotkey fallback (Ctrl+N)...")
     if sys.platform == 'darwin':
         input_control.hotkey('command', 'n')
     else:
         input_control.hotkey('ctrl', 'n')
-
     time.sleep(1)
     input_control.type_text(project_name)
     input_control.press_key('enter')
-    time.sleep(2)
-    return True
+
+    # Tier 3: Right-Click Fallback (Context menu in Project Manager)
+    print("Hotkey might have failed. Trying right-click fallback...")
+    width, height = input_control.get_screen_size()
+    input_control.right_click(width // 2, height // 2)
+    time.sleep(1)
+    # Most Resolve versions have 'New Project...' in context menu
+    if click_ui_element('context_new_project') or True: # Force try if image missing
+        input_control.type_text(project_name)
+        input_control.press_key('enter')
+        return True
+
+    return False
 
 def open_project(project_name):
     if is_api_available():
@@ -128,7 +138,6 @@ def add_clips_to_timeline(clip_names):
             if clips_to_add:
                 return mp.AppendToTimeline(clips_to_add)
 
-    # UI Fallback: F12 appends selected clip to timeline
     for name in clip_names:
         input_control.type_text(name)
         input_control.press_key('f12')
@@ -190,10 +199,8 @@ def apply_color_grade(style):
     switch_to_page('color')
     print(f"Applying {style} color grade...")
 
-    # UI Fallback for Grading
     if not click_ui_element('luts_tab'):
-        # Fallback hotkey to open effects library/LUTs
-        input_control.hotkey('ctrl', '4') # Standard for some layouts
+        input_control.hotkey('ctrl', '4')
 
     input_control.type_text(style)
     input_control.press_key('enter')

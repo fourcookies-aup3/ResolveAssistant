@@ -7,7 +7,7 @@ import time
 # Safety features
 pyautogui.FAILSAFE = True
 # Slow down actions for live viewing
-pyautogui.PAUSE = 1.0 # Significant pause between actions for visibility
+pyautogui.PAUSE = 1.0
 
 def click(x, y):
     """
@@ -15,6 +15,13 @@ def click(x, y):
     """
     move_to(x, y)
     pyautogui.click()
+
+def right_click(x, y):
+    """
+    Moves to and right-clicks at the specified coordinates.
+    """
+    move_to(x, y)
+    pyautogui.rightClick()
 
 def type_text(text):
     """
@@ -40,10 +47,10 @@ def move_to(x, y):
     """
     pyautogui.moveTo(x, y, duration=0.8)
 
+def get_screen_size():
+    return pyautogui.size()
+
 def launch_resolve(executable_path=None):
-    """
-    Launches DaVinci Resolve based on provided path or default OS paths.
-    """
     if not executable_path:
         if sys.platform == 'win32':
             executable_path = r"C:\Program Files\Blackmagic Design\DaVinci Resolve\Resolve.exe"
@@ -61,17 +68,11 @@ def launch_resolve(executable_path=None):
         return False
 
 def wait_for_window(window_title_part="DaVinci Resolve", timeout=60):
-    """
-    Waits for a window with the given title to appear.
-    """
     print(f"Waiting for {window_title_part} to open...")
-    time.sleep(10) # Give it some initial time
+    time.sleep(10)
     return True
 
 def focus_window():
-    """
-    Attempts to bring DaVinci Resolve to the foreground.
-    """
     print("Focusing DaVinci Resolve...")
     if sys.platform == 'win32':
         hotkey('alt', 'tab')

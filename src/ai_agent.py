@@ -13,7 +13,7 @@ class AIAgent:
     def process_command(self, command):
         """
         Translates natural language into editor actions.
-        Now includes training and observation modes.
+        Now includes continuous training controls.
         """
         patterns = [
             (r'(?i)create project (.*)', self._handle_create_project),
@@ -28,7 +28,8 @@ class AIAgent:
             (r'(?i)add music', lambda: self._handle_smart_media("music")),
             (r'(?i)add sfx', lambda: self._handle_smart_media("sfx")),
             (r'(?i)auto edit (.*)', self._handle_auto_edit),
-            (r'(?i)train', self._handle_train),
+            (r'(?i)stop training', self._handle_stop_training), # High priority
+            (r'(?i)train', self._handle_start_training),
             (r'(?i)watch (.*)', self._handle_watch),
         ]
 
@@ -44,9 +45,10 @@ class AIAgent:
         return ("I'm sorry, I don't understand that command yet. Try:\n"
                 "- create project [name]\n"
                 "- color grade [style]\n"
-                "- auto edit [project name]\n"
-                "- train\n"
-                "- watch [duration in seconds]")
+                "- train (starts watching YouTube)\n"
+                "- stop training\n"
+                "- watch [seconds]\n"
+                "- auto edit [project name]")
 
     def _handle_create_project(self, name):
         editor_actions.create_new_project(name)
@@ -107,9 +109,13 @@ class AIAgent:
         editor_actions.professional_auto_edit(project_name, default_clips)
         return f"Professional Auto-Edit for '{project_name}' in progress."
 
-    def _handle_train(self):
-        trainer.train_from_internet()
-        return "Training complete. I am now more advanced!"
+    def _handle_start_training(self):
+        trainer.start_video_training()
+        return "Training Mode STARTED. I am now watching videos to learn. Say 'stop training' when done."
+
+    def _handle_stop_training(self):
+        trainer.stop_video_training()
+        return "Training Mode STOPPED. My knowledge base has been updated."
 
     def _handle_watch(self, duration):
         try:
