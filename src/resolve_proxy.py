@@ -2,9 +2,14 @@ import os
 import sys
 
 class MockResolve:
-    def __init__(self):
-        self.project_manager = MockProjectManager()
-        self.media_storage = MockMediaStorage()
+    def __init__(self, is_api_available=True):
+        self.is_api_available = is_api_available
+        if is_api_available:
+            self.project_manager = MockProjectManager()
+            self.media_storage = MockMediaStorage()
+        else:
+            self.project_manager = None
+            self.media_storage = None
 
     def GetProjectManager(self):
         return self.project_manager
@@ -13,10 +18,13 @@ class MockResolve:
         return self.media_storage
 
     def Fusion(self):
-        return "MockFusion"
+        return "MockFusion" if self.is_api_available else None
 
     def OpenPage(self, page_name):
-        print(f"Mock: Opening page {page_name}")
+        if self.is_api_available:
+            print(f"Mock API: Opening page {page_name}")
+        else:
+            print(f"API Unavailable: Cannot open page {page_name} via API.")
 
 class MockProjectManager:
     def __init__(self):
@@ -60,7 +68,6 @@ class MockProject:
 
     def SetCurrentTimeline(self, timeline):
         if timeline in self.timelines:
-            # Move it to the front for simplicity in mock
             self.timelines.remove(timeline)
             self.timelines.insert(0, timeline)
             return True
@@ -78,16 +85,15 @@ class MockMediaPool:
     def CreateEmptyTimeline(self, name):
         timeline = MockTimeline(name)
         self.timelines.append(timeline)
-        # Link to current project if exists
         resolve = get_resolve()
         pm = resolve.GetProjectManager()
-        project = pm.GetCurrentProject()
-        if project:
-            project.timelines.append(timeline)
+        if pm:
+            project = pm.GetCurrentProject()
+            if project:
+                project.timelines.append(timeline)
         return timeline
 
     def AppendToTimeline(self, *args):
-        # Can take multiple clips or a list of clips
         print(f"Mock: Appending {len(args)} items to timeline.")
         return True
 
@@ -108,14 +114,12 @@ class MockMediaStorage:
         if isinstance(items, str):
             items = [items]
         clips = [MockMediaPoolItem(item) for item in items]
-
-        # Add to current project's media pool root
         resolve = get_resolve()
         pm = resolve.GetProjectManager()
-        project = pm.GetCurrentProject()
-        if project:
-            project.GetMediaPool().GetRootFolder().clips.extend(clips)
-
+        if pm:
+            project = pm.GetCurrentProject()
+            if project:
+                project.GetMediaPool().GetRootFolder().clips.extend(clips)
         return clips
 
 class MockMediaPoolItem:
@@ -131,15 +135,30 @@ def get_resolve():
     if _resolve_instance:
         return _resolve_instance
 
+    # For development/testing, check if we should mock an unavailable API
+    if os.getenv("RESOLVE_API_UNAVAILABLE", "false").lower() == "true":
+        _resolve_instance = MockResolve(is_api_available=False)
+        return _resolve_instance
+
     if os.getenv("USE_MOCK_RESOLVE", "true").lower() == "true":
-        _resolve_instance = MockResolve()
+        _resolve_instance = MockResolve(is_api_available=True)
         return _resolve_instance
 
     try:
         import DaVinciResolveScript as dvr_script
         _resolve_instance = dvr_script.scriptapp("Resolve")
+        if not _resolve_instance:
+             print("Warning: Resolve API connection failed (likely Free version). Falling back to UI automation.")
+             return None
         return _resolve_instance
     except ImportError:
-        print("Warning: DaVinciResolveScript not found. Using MockResolve.")
-        _resolve_instance = MockResolve()
-        return _resolve_instance
+        print("Warning: DaVinciResolveScript not found. Falling back to UI automation.")
+        return None
+
+def is_api_available():
+    res = get_resolve()
+    if res is None:
+        return False
+    if isinstance(res, MockResolve):
+        return res.is_api_available
+    return True

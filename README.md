@@ -1,31 +1,25 @@
 # ResolveAssistant
 
-An AI-powered video editing assistant for DaVinci Resolve with Screen Vision and Live Control.
+An AI-powered video editing assistant for DaVinci Resolve (Studio and Free versions).
 
 ## Features
-- **Scripting API Integration**: Direct control via Resolve's Python API.
+- **Hybrid Control**: Automatically detects if the DaVinci Resolve Scripting API is available.
+- **Studio Support**: Uses the official Python API for high-precision control.
+- **Free Version Support**: Falls back to Computer Vision and UI Automation when the API is unavailable.
 - **Computer Vision**: Sees your screen to find UI elements using OpenCV.
 - **Live Control**: Automates mouse and keyboard for real-time editing.
-- **Natural Language**: Process commands like "click the render button" or "save project".
-- **Mock Mode**: Full development and testing support without requiring a Resolve installation.
+- **Natural Language**: Process commands like "create project My Movie" or "switch to edit page".
 
 ## Prerequisites
-- DaVinci Resolve Studio (Scripting API is required).
+- DaVinci Resolve (Studio or Free).
 - Python 3.6 or higher.
 - `pip install pyautogui opencv-python pillow`
-- **Important**: Ensure "External scripting using" is set to "Local" or "Network" in Resolve Preferences -> System -> General.
 
 ## Setup
 
-### Environment Variables
-Configure these to point to your Resolve installation:
-
-**Windows:**
-```cmd
-set RESOLVE_SCRIPT_API=%PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Support\Developer\Scripting\
-set RESOLVE_SCRIPT_LIB=C:\Program Files\Blackmagic Design\DaVinci Resolve\fusionscript.dll
-set PYTHONPATH=%PYTHONPATH%;%RESOLVE_SCRIPT_API%\Modules\
-```
+### For Studio Version (API Support)
+Ensure "External scripting using" is set to "Local" or "Network" in Resolve Preferences -> System -> General.
+Configure environment variables:
 
 **macOS:**
 ```bash
@@ -33,6 +27,11 @@ export RESOLVE_SCRIPT_API="/Library/Application Support/Blackmagic Design/DaVinc
 export RESOLVE_SCRIPT_LIB="/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so"
 export PYTHONPATH="$PYTHONPATH:$RESOLVE_SCRIPT_API/Modules/"
 ```
+
+### For Free Version (UI Automation Support)
+No special API configuration is needed, but the assistant will rely heavily on:
+1. **Hotkeys**: Standard DaVinci Resolve hotkeys (e.g., Shift+4 for Edit page).
+2. **Vision**: Template images in `assets/templates/` to find buttons on your screen.
 
 ## Usage
 
@@ -43,20 +42,22 @@ python3 src/main.py
 
 ### Example Commands
 - `create project My Movie`
+- `import /path/to/video/clip1.mp4`
 - `switch to edit page`
-- `click export_button` (requires template image in `assets/templates/export_button.png`)
+- `add clip1.mp4 to timeline`
 - `save project`
 - `render`
 
-## Live Control & Vision
-The assistant uses `PyAutoGUI` for mouse/keyboard control and `OpenCV` for template matching.
-- Template images should be placed in `assets/templates/`.
-- Screen capturing is handled by `Pillow`.
+## How it Works
+
+The assistant uses a tiered execution model:
+1. **API Tier**: If the `DaVinciResolveScript` module is found and a connection is established, it uses direct API calls.
+2. **UI Tier**: If the API is missing (common in the Free version), it uses `PyAutoGUI` to simulate hotkeys and `OpenCV` to find and click buttons.
 
 ## Development
-Run in mock mode:
+To test Free Version behavior (API Unavailable):
 ```bash
-export USE_MOCK_RESOLVE=true
+export RESOLVE_API_UNAVAILABLE=true
 python3 src/main.py
 ```
 
@@ -64,4 +65,5 @@ python3 src/main.py
 ```bash
 python3 tests/test_assistant.py
 python3 tests/test_advanced.py
+python3 tests/test_free_version.py
 ```
