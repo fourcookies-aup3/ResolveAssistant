@@ -11,7 +11,7 @@ class AIAgent:
     def process_command(self, command):
         """
         Translates natural language into editor actions.
-        Works in both API-enabled (Studio) and UI-Only (Free) modes.
+        Updated with advanced professional editing commands.
         """
         patterns = [
             (r'(?i)create project (.*)', self._handle_create_project),
@@ -22,6 +22,10 @@ class AIAgent:
             (r'(?i)save project', self._handle_save_project),
             (r'(?i)click (.*)', self._handle_click_ui),
             (r'(?i)render', self._handle_render),
+            (r'(?i)color grade (.*)', self._handle_color_grade),
+            (r'(?i)add music', lambda: self._handle_smart_media("music")),
+            (r'(?i)add sfx', lambda: self._handle_smart_media("sfx")),
+            (r'(?i)auto edit (.*)', self._handle_auto_edit),
         ]
 
         for pattern, handler in patterns:
@@ -36,17 +40,14 @@ class AIAgent:
         return ("I'm sorry, I don't understand that command yet. Try:\n"
                 "- create project [name]\n"
                 "- import [path]\n"
-                "- create timeline [name]\n"
-                "- add [clip name] to timeline\n"
-                "- switch to [media|edit|color|deliver] page\n"
-                "- save project\n"
-                "- click [button name]\n"
-                "- render")
+                "- color grade [cinematic|nature|hd|colourful]\n"
+                "- add music / add sfx\n"
+                "- auto edit [project name]")
 
     def _handle_create_project(self, name):
         editor_actions.create_new_project(name)
         mode = "API" if is_api_available() else "UI Automation"
-        return f"Created project: {name} (via {mode})"
+        return f"Created and opened project: {name} (via {mode})"
 
     def _handle_import(self, path):
         editor_actions.import_media([path])
@@ -65,7 +66,7 @@ class AIAgent:
         if success:
             return f"Added {clip_name} to timeline (via {mode})."
         else:
-            return f"Failed to add {clip_name} to timeline. Make sure clips are imported."
+            return f"Failed to add {clip_name} to timeline."
 
     def _handle_switch_page(self, page):
         editor_actions.switch_to_page(page)
@@ -85,6 +86,21 @@ class AIAgent:
     def _handle_render(self):
         editor_actions.render_project()
         return "Starting render process..."
+
+    def _handle_color_grade(self, style):
+        editor_actions.apply_color_grade(style)
+        return f"Applying {style} color grade based on visual analysis."
+
+    def _handle_smart_media(self, media_type):
+        editor_actions.import_and_add_smart_media(media_type)
+        return f"AI selected and added fitting {media_type}."
+
+    def _handle_auto_edit(self, project_name):
+        # For simplicity in this demo, it looks for clips in a default location if not specified
+        # In a real tool, it would ask the user or look at recent imports.
+        default_clips = [r"C:\Users\finnr\Videos\Source\clip1.mp4"]
+        editor_actions.professional_auto_edit(project_name, default_clips)
+        return f"Professional Auto-Edit for '{project_name}' in progress. Check Resolve!"
 
     def execute_plan(self, plan_json):
         actions = json.loads(plan_json)

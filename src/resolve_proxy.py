@@ -135,12 +135,15 @@ def get_resolve():
     if _resolve_instance:
         return _resolve_instance
 
-    # For development/testing, check if we should mock an unavailable API
-    if os.getenv("RESOLVE_API_UNAVAILABLE", "false").lower() == "true":
+    # Default to False for production-readiness, but check env
+    use_mock = os.getenv("USE_MOCK_RESOLVE", "false").lower() == "true"
+    api_unavailable = os.getenv("RESOLVE_API_UNAVAILABLE", "false").lower() == "true"
+
+    if api_unavailable:
         _resolve_instance = MockResolve(is_api_available=False)
         return _resolve_instance
 
-    if os.getenv("USE_MOCK_RESOLVE", "true").lower() == "true":
+    if use_mock:
         _resolve_instance = MockResolve(is_api_available=True)
         return _resolve_instance
 
@@ -148,11 +151,11 @@ def get_resolve():
         import DaVinciResolveScript as dvr_script
         _resolve_instance = dvr_script.scriptapp("Resolve")
         if not _resolve_instance:
-             print("Warning: Resolve API connection failed (likely Free version). Falling back to UI automation.")
+             print("Warning: Resolve API connection failed. Falling back to UI automation.")
              return None
         return _resolve_instance
     except ImportError:
-        print("Warning: DaVinciResolveScript not found. Falling back to UI automation.")
+        # If not Studio and not explicitly mocking, we fall back to UI automation
         return None
 
 def is_api_available():

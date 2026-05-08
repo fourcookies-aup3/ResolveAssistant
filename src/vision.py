@@ -22,7 +22,6 @@ def find_image_on_screen(template_path, threshold=0.8):
     Returns (x, y) coordinates of the match or None.
     """
     if not os.path.exists(template_path):
-        print(f"Template image not found: {template_path}")
         return None
 
     screen = capture_screen()
@@ -38,3 +37,26 @@ def find_image_on_screen(template_path, threshold=0.8):
         return (max_loc[0] + w // 2, max_loc[1] + h // 2)
 
     return None
+
+def analyze_frame():
+    """
+    Captures the screen and provides a basic visual summary.
+    In a real AI, this would return dominant colors, brightness, and scene type.
+    """
+    screen = capture_screen()
+    if screen is None:
+        return {"brightness": 0, "dominant_color": "unknown"}
+
+    avg_color_per_row = np.average(screen, axis=0)
+    avg_color = np.average(avg_color_per_row, axis=0)
+    brightness = np.average(avg_color)
+
+    # Simple color classification
+    b, g, r = avg_color
+    dominant = "blue" if b > g and b > r else "green" if g > b and g > r else "red"
+
+    return {
+        "brightness": float(brightness),
+        "dominant_color": dominant,
+        "avg_bgr": [float(b), float(g), float(r)]
+    }

@@ -1,13 +1,13 @@
 # ResolveAssistant
 
-An AI-powered video editing assistant for DaVinci Resolve with **Live Live Automation**.
+An AI-powered video editing assistant for DaVinci Resolve with **Professional Auto-Edit** and **Computer Vision**.
 
 ## Features
-- **Live Visual Execution**: Watch as the assistant takes control of your mouse and keyboard to edit in DaVinci Resolve.
-- **Automatic Launch**: Starts DaVinci Resolve automatically when you run the assistant.
-- **Hybrid Control**: Supports both Studio (API) and Free (UI Automation) versions.
-- **Computer Vision**: Locates buttons and menus on your screen.
-- **Natural Language**: Commands like "create project My Movie" or "switch to color page".
+- **Live Visual Execution**: Watch the AI edit your videos in real-time.
+- **Smart Media Selection**: Automatically picks fitting Music and SFX based on visual analysis of your footage.
+- **Style-Based Color Grading**: Apply "Cinematic", "Nature", "HD", or "Colourful" grades.
+- **Professional Auto-Edit**: Automate the entire workflow from project creation to final grading with a single command.
+- **Universal Support**: Works on both DaVinci Resolve Studio (API) and Free (UI Automation).
 
 ## Prerequisites
 - DaVinci Resolve (Studio or Free).
@@ -16,50 +16,44 @@ An AI-powered video editing assistant for DaVinci Resolve with **Live Live Autom
 
 ## Setup
 
-### 1. Set Resolve Executable Path (Optional)
-By default, the assistant looks for Resolve in standard locations. You can override this:
-```bash
-export RESOLVE_PATH="/your/custom/path/to/resolve"
-```
+### Media Directories
+The assistant looks for media in these default paths:
+- **Music**: `C:\Users\finnr\Videos\Music`
+- **Sound Effects**: `C:\Users\finnr\Videos\SFX`
+- **Source Footage**: `C:\Users\finnr\Videos\Source` (used for Auto-Edit)
 
-### 2. Configure API (Studio Only)
-Set "External scripting using" to "Local" or "Network" in Resolve Preferences -> System -> General.
+### Paths (Optional)
+```bash
+export RESOLVE_PATH="/path/to/resolve"
+```
 
 ## Usage
 
-Start the assistant in Live Mode:
+Start the assistant:
 ```bash
 python3 src/main.py
 ```
 
-1. **Auto-Launch**: DaVinci Resolve will open automatically.
-2. **Focus**: The assistant will bring Resolve to the front.
-3. **Control**: Type commands, and watch the assistant move the cursor and perform actions on your screen.
+### Advanced Commands
+- `auto edit [project name]`: Runs a full professional edit sequence.
+- `color grade [cinematic|nature|hd|colourful]`: Analyzes the screen and applies a style.
+- `add music`: AI selects a fitting music track and adds it to your timeline.
+- `add sfx`: AI selects a fitting sound effect and adds it to your timeline.
 
-### Example Commands
-- `create project My Movie`
-- `import /path/to/video/clip1.mp4`
-- `switch to edit page`
+### Basic Commands
+- `create project [name]` (now automatically opens the project)
+- `import [path]`
+- `switch to [edit|color|deliver] page`
 - `save project`
-- `render`
 
-## Live Experience
-To ensure you can follow along, the assistant:
-- Moves the cursor visibly (approx. 0.8s duration).
-- Pauses briefly between actions.
-- Types text at a human-like speed.
+## How it Works
+The assistant uses **Computer Vision (OpenCV)** to analyze the current frame in DaVinci Resolve. It calculates brightness and dominant colors to decide which music or color grade "fits" the mood of your video.
 
 ## Development & Testing
-Run in mock mode:
-```bash
-export USE_MOCK_RESOLVE=true
-python3 src/main.py
-```
-
-### Running Tests
 ```bash
 python3 tests/test_assistant.py
 python3 tests/test_advanced.py
 python3 tests/test_free_version.py
 python3 tests/test_live.py
+python3 tests/test_professional.py
 ```

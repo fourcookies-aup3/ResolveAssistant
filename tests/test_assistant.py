@@ -33,7 +33,7 @@ class TestResolveAssistant(unittest.TestCase):
 
     def test_ai_process_command(self):
         response = self.agent.process_command("create project AI Project")
-        self.assertIn("Created project: AI Project", response)
+        self.assertIn("Created and opened project: AI Project", response)
 
         response = self.agent.process_command("import /path/to/video.mp4")
         self.assertIn("Imported media from: /path/to/video.mp4", response)

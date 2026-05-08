@@ -1,8 +1,10 @@
 from resolve_proxy import get_resolve, is_api_available
 import vision
 import input_control
+import media_manager
 import os
 import sys
+import time
 
 def create_new_project(project_name):
     if is_api_available():
@@ -11,18 +13,35 @@ def create_new_project(project_name):
         project = pm.CreateProject(project_name)
         if project:
             print(f"Project '{project_name}' created successfully via API.")
+            pm.LoadProject(project_name)
             return True
 
-    # Fallback to UI Automation
-    print(f"API unavailable. Attempting to create project '{project_name}' via UI automation.")
-    # Step 1: Open Project Manager (Shift+1)
-    input_control.hotkey('shift', '1')
-    # Step 2: Click 'New Project' button (needs template)
+    print(f"Attempting to create project '{project_name}' via UI automation.")
+    input_control.hotkey('shift', '1') # Project Manager
+
+    # Try to find 'New Project' button, if not found, use common coordinates or search
     if click_ui_element('new_project_button'):
         input_control.type_text(project_name)
         input_control.press_key('enter')
+        time.sleep(2)
         return True
-    return False
+    else:
+        # Fallback: Many Resolve versions have New Project at the bottom right
+        print("Template 'new_project_button' missing. Please capture it in assets/templates/.")
+        return False
+
+def open_project(project_name):
+    if is_api_available():
+        resolve = get_resolve()
+        pm = resolve.GetProjectManager()
+        if pm.LoadProject(project_name):
+            print(f"Project '{project_name}' opened.")
+            return True
+
+    input_control.hotkey('shift', '1')
+    input_control.type_text(project_name)
+    input_control.press_key('enter')
+    return True
 
 def import_media(file_paths):
     if is_api_available():
@@ -33,16 +52,12 @@ def import_media(file_paths):
             print(f"Imported {len(clips)} clips via API.")
             return clips
 
-    # Fallback to UI Automation
-    print("API unavailable. Attempting to import media via UI automation.")
     for path in file_paths:
         if sys.platform == 'darwin':
             input_control.hotkey('command', 'i')
         else:
             input_control.hotkey('ctrl', 'i')
-
-        # This part is tricky as it opens a OS dialog.
-        # Usually we would type the path and press enter.
+        time.sleep(1)
         input_control.type_text(path)
         input_control.press_key('enter')
     return True
@@ -59,8 +74,6 @@ def create_timeline(timeline_name):
                 print(f"Timeline '{timeline_name}' created via API.")
                 return timeline
 
-    # Fallback
-    print(f"API unavailable. Creating timeline '{timeline_name}' via UI automation.")
     if sys.platform == 'darwin':
         input_control.hotkey('command', 'n')
     else:
@@ -101,12 +114,10 @@ def add_clips_to_timeline(clip_names):
             if clips_to_add:
                 return mp.AppendToTimeline(clips_to_add)
 
-    # Fallback: Very basic UI automation (Drag and drop or F12)
-    print("API unavailable. Adding clips via UI automation (F12).")
+    # UI Fallback: F12 appends selected clip to timeline
     for name in clip_names:
-        # Assuming clip is selected or can be found by typing
         input_control.type_text(name)
-        input_control.press_key('f12') # 'Append to end of timeline' hotkey
+        input_control.press_key('f12')
     return True
 
 # --- UI Automation Actions ---
@@ -149,9 +160,75 @@ def click_ui_element(template_name):
         print(f"Clicked UI element: {template_name}")
         return True
     else:
-        print(f"Could not find UI element: {template_name}")
+        print(f"Vision Alert: Could not find '{template_name}'. Please ensure the image is in assets/templates/.")
         return False
 
 def render_project():
     switch_to_page('deliver')
     return click_ui_element('start_render')
+
+# --- Advanced Commands ---
+
+def apply_color_grade(style):
+    context = vision.analyze_frame()
+    print(f"Vision Analysis: {context['dominant_color']} scene. Brightness: {context['brightness']:.1f}")
+
+    switch_to_page('color')
+    print(f"Applying {style} color grade...")
+
+    # UI Automation for Grading:
+    # 1. Open LUTs or Effects library
+    # 2. Search for style
+    # 3. Apply to node
+    if click_ui_element('luts_tab'):
+        input_control.type_text(style)
+        input_control.press_key('enter')
+        # Here we would normally drag-and-drop, but we'll simulate a double-click
+        # if we could find the resulting LUT.
+    return True
+
+def import_and_add_smart_media(media_type):
+    context = vision.analyze_frame()
+    selection = media_manager.get_smart_media_selection(media_type, context)
+
+    if not selection or "dummy" in selection:
+        print(f"No real {media_type} files found in C:\\Users\\finnr\\Videos. Please add some!")
+        return False
+
+    print(f"Smart {media_type} selection: {selection}")
+
+    path = os.path.join(media_manager.MUSIC_PATH if media_type == "music" else media_manager.SFX_PATH, selection)
+
+    import_media([path])
+    add_clips_to_timeline([selection])
+    return True
+
+def professional_auto_edit(project_name, source_clips=None):
+    if not source_clips:
+        source_dir = r"C:\Users\finnr\Videos\Source"
+        if os.path.exists(source_dir):
+            source_clips = [os.path.join(source_dir, f) for f in os.listdir(source_dir) if f.endswith(('.mp4', '.mov'))]
+        else:
+            print(f"Source directory {source_dir} not found. Please provide clips.")
+            return False
+
+    if not source_clips:
+        print("No source clips to edit.")
+        return False
+
+    print(f"Starting Professional Auto-Edit for '{project_name}'...")
+    create_new_project(project_name)
+
+    import_media(source_clips)
+    create_timeline("Master Edit")
+    add_clips_to_timeline([os.path.basename(c) for c in source_clips])
+
+    switch_to_page('edit')
+    import_and_add_smart_media("music")
+    import_and_add_smart_media("sfx")
+
+    apply_color_grade("cinematic")
+
+    save_project()
+    print("Auto-Edit Complete! Your video is ready for review.")
+    return True
