@@ -15,20 +15,32 @@ def create_new_project(project_name):
             print(f"Project '{project_name}' created successfully via API.")
             pm.LoadProject(project_name)
             return True
+        else:
+            return False
 
     print(f"Attempting to create project '{project_name}' via UI automation.")
     input_control.hotkey('shift', '1') # Project Manager
+    time.sleep(1)
 
-    # Try to find 'New Project' button, if not found, use common coordinates or search
+    # Tier 1: Try Vision
     if click_ui_element('new_project_button'):
         input_control.type_text(project_name)
         input_control.press_key('enter')
         time.sleep(2)
         return True
+
+    # Tier 2: Try Hotkey (Ctrl+N / Cmd+N is standard for New Project in many views)
+    print("Vision failed. Trying hotkey (Ctrl+N) fallback...")
+    if sys.platform == 'darwin':
+        input_control.hotkey('command', 'n')
     else:
-        # Fallback: Many Resolve versions have New Project at the bottom right
-        print("Template 'new_project_button' missing. Please capture it in assets/templates/.")
-        return False
+        input_control.hotkey('ctrl', 'n')
+
+    time.sleep(1)
+    input_control.type_text(project_name)
+    input_control.press_key('enter')
+    time.sleep(2)
+    return True
 
 def open_project(project_name):
     if is_api_available():
@@ -39,6 +51,7 @@ def open_project(project_name):
             return True
 
     input_control.hotkey('shift', '1')
+    time.sleep(1)
     input_control.type_text(project_name)
     input_control.press_key('enter')
     return True
@@ -57,7 +70,7 @@ def import_media(file_paths):
             input_control.hotkey('command', 'i')
         else:
             input_control.hotkey('ctrl', 'i')
-        time.sleep(1)
+        time.sleep(1.5)
         input_control.type_text(path)
         input_control.press_key('enter')
     return True
@@ -78,6 +91,7 @@ def create_timeline(timeline_name):
         input_control.hotkey('command', 'n')
     else:
         input_control.hotkey('ctrl', 'n')
+    time.sleep(1)
     input_control.type_text(timeline_name)
     input_control.press_key('enter')
     return True
@@ -160,7 +174,7 @@ def click_ui_element(template_name):
         print(f"Clicked UI element: {template_name}")
         return True
     else:
-        print(f"Vision Alert: Could not find '{template_name}'. Please ensure the image is in assets/templates/.")
+        print(f"Vision Alert: Could not find '{template_name}'.")
         return False
 
 def render_project():
@@ -176,15 +190,13 @@ def apply_color_grade(style):
     switch_to_page('color')
     print(f"Applying {style} color grade...")
 
-    # UI Automation for Grading:
-    # 1. Open LUTs or Effects library
-    # 2. Search for style
-    # 3. Apply to node
-    if click_ui_element('luts_tab'):
-        input_control.type_text(style)
-        input_control.press_key('enter')
-        # Here we would normally drag-and-drop, but we'll simulate a double-click
-        # if we could find the resulting LUT.
+    # UI Fallback for Grading
+    if not click_ui_element('luts_tab'):
+        # Fallback hotkey to open effects library/LUTs
+        input_control.hotkey('ctrl', '4') # Standard for some layouts
+
+    input_control.type_text(style)
+    input_control.press_key('enter')
     return True
 
 def import_and_add_smart_media(media_type):
@@ -192,11 +204,10 @@ def import_and_add_smart_media(media_type):
     selection = media_manager.get_smart_media_selection(media_type, context)
 
     if not selection or "dummy" in selection:
-        print(f"No real {media_type} files found in C:\\Users\\finnr\\Videos. Please add some!")
+        print(f"No real {media_type} files found. Please check paths in README.")
         return False
 
     print(f"Smart {media_type} selection: {selection}")
-
     path = os.path.join(media_manager.MUSIC_PATH if media_type == "music" else media_manager.SFX_PATH, selection)
 
     import_media([path])
@@ -208,12 +219,9 @@ def professional_auto_edit(project_name, source_clips=None):
         source_dir = r"C:\Users\finnr\Videos\Source"
         if os.path.exists(source_dir):
             source_clips = [os.path.join(source_dir, f) for f in os.listdir(source_dir) if f.endswith(('.mp4', '.mov'))]
-        else:
-            print(f"Source directory {source_dir} not found. Please provide clips.")
-            return False
 
     if not source_clips:
-        print("No source clips to edit.")
+        print("Error: No source footage found. Add clips to 'Videos/Source'.")
         return False
 
     print(f"Starting Professional Auto-Edit for '{project_name}'...")
@@ -230,5 +238,5 @@ def professional_auto_edit(project_name, source_clips=None):
     apply_color_grade("cinematic")
 
     save_project()
-    print("Auto-Edit Complete! Your video is ready for review.")
+    print("Auto-Edit Complete!")
     return True

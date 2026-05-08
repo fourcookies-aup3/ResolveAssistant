@@ -1,11 +1,14 @@
 import sys
 from unittest.mock import MagicMock, patch
 
-# Mock GUI and other libraries
+# Mock libraries
 sys.modules['pyautogui'] = MagicMock()
 sys.modules['PIL'] = MagicMock()
 sys.modules['PIL.ImageGrab'] = MagicMock()
 sys.modules['cv2'] = MagicMock()
+sys.modules['pynput'] = MagicMock()
+sys.modules['pynput.mouse'] = MagicMock()
+sys.modules['pynput.keyboard'] = MagicMock()
 
 import os
 import unittest
@@ -28,12 +31,10 @@ class TestProfessionalFeatures(unittest.TestCase):
         mock_exists.return_value = True
         mock_listdir.return_value = ["upbeat_track.mp3", "dark_mood.wav", "normal.mp3"]
 
-        # Test bright context (should pick upbeat)
         context = {"brightness": 200, "dominant_color": "red"}
         selection = media_manager.get_smart_media_selection("music", context)
         self.assertEqual(selection, "upbeat_track.mp3")
 
-        # Test dark context (should pick dark)
         context = {"brightness": 50, "dominant_color": "blue"}
         selection = media_manager.get_smart_media_selection("music", context)
         self.assertEqual(selection, "dark_mood.wav")

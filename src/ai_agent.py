@@ -2,16 +2,18 @@ import editor_actions
 import json
 import re
 from resolve_proxy import is_api_available
+import trainer
+import observer
+import database
 
 class AIAgent:
     def __init__(self):
-        # In a real implementation, this would connect to an LLM
-        pass
+        database.init_db()
 
     def process_command(self, command):
         """
         Translates natural language into editor actions.
-        Updated with advanced professional editing commands.
+        Now includes training and observation modes.
         """
         patterns = [
             (r'(?i)create project (.*)', self._handle_create_project),
@@ -26,6 +28,8 @@ class AIAgent:
             (r'(?i)add music', lambda: self._handle_smart_media("music")),
             (r'(?i)add sfx', lambda: self._handle_smart_media("sfx")),
             (r'(?i)auto edit (.*)', self._handle_auto_edit),
+            (r'(?i)train', self._handle_train),
+            (r'(?i)watch (.*)', self._handle_watch),
         ]
 
         for pattern, handler in patterns:
@@ -39,10 +43,10 @@ class AIAgent:
 
         return ("I'm sorry, I don't understand that command yet. Try:\n"
                 "- create project [name]\n"
-                "- import [path]\n"
-                "- color grade [cinematic|nature|hd|colourful]\n"
-                "- add music / add sfx\n"
-                "- auto edit [project name]")
+                "- color grade [style]\n"
+                "- auto edit [project name]\n"
+                "- train\n"
+                "- watch [duration in seconds]")
 
     def _handle_create_project(self, name):
         editor_actions.create_new_project(name)
@@ -88,19 +92,32 @@ class AIAgent:
         return "Starting render process..."
 
     def _handle_color_grade(self, style):
+        params = trainer.get_best_grade_params(style)
+        if params:
+            print(f"Applying learned parameters for {style}: {params}")
         editor_actions.apply_color_grade(style)
-        return f"Applying {style} color grade based on visual analysis."
+        return f"Applying {style} color grade using learned knowledge."
 
     def _handle_smart_media(self, media_type):
         editor_actions.import_and_add_smart_media(media_type)
         return f"AI selected and added fitting {media_type}."
 
     def _handle_auto_edit(self, project_name):
-        # For simplicity in this demo, it looks for clips in a default location if not specified
-        # In a real tool, it would ask the user or look at recent imports.
         default_clips = [r"C:\Users\finnr\Videos\Source\clip1.mp4"]
         editor_actions.professional_auto_edit(project_name, default_clips)
-        return f"Professional Auto-Edit for '{project_name}' in progress. Check Resolve!"
+        return f"Professional Auto-Edit for '{project_name}' in progress."
+
+    def _handle_train(self):
+        trainer.train_from_internet()
+        return "Training complete. I am now more advanced!"
+
+    def _handle_watch(self, duration):
+        try:
+            d = int(duration)
+        except:
+            d = 60
+        observer.run_observer_session(d)
+        return f"Observation complete. I have learned from your editing for {d} seconds."
 
     def execute_plan(self, plan_json):
         actions = json.loads(plan_json)

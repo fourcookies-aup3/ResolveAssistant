@@ -1,11 +1,14 @@
 import sys
 from unittest.mock import MagicMock
 
-# Mock GUI libraries for tests that don't need them
+# Mock GUI and input libraries
 sys.modules['pyautogui'] = MagicMock()
 sys.modules['PIL'] = MagicMock()
 sys.modules['PIL.ImageGrab'] = MagicMock()
 sys.modules['cv2'] = MagicMock()
+sys.modules['pynput'] = MagicMock()
+sys.modules['pynput.mouse'] = MagicMock()
+sys.modules['pynput.keyboard'] = MagicMock()
 
 import os
 import unittest
@@ -25,13 +28,11 @@ class TestAdvancedFeatures(unittest.TestCase):
 
     def test_vision_capture(self):
         import numpy as np
-        # Setup mock for ImageGrab.grab()
         import PIL.ImageGrab
         mock_img = MagicMock()
         mock_img.__array__ = MagicMock(return_value=np.zeros((100, 100, 3), dtype=np.uint8))
         PIL.ImageGrab.grab.return_value = mock_img
 
-        # Setup cv2.cvtColor mock
         import cv2
         cv2.cvtColor.return_value = np.zeros((100, 100, 3), dtype=np.uint8)
 
@@ -42,7 +43,6 @@ class TestAdvancedFeatures(unittest.TestCase):
     def test_input_click(self):
         import pyautogui
         input_control.click(10, 20)
-        # In current implementation, click(x, y) calls move_to(x, y) then click()
         pyautogui.moveTo.assert_called_once_with(10, 20, duration=unittest.mock.ANY)
         pyautogui.click.assert_called_once()
 

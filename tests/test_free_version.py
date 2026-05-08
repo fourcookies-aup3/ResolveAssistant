@@ -6,6 +6,9 @@ sys.modules['pyautogui'] = MagicMock()
 sys.modules['PIL'] = MagicMock()
 sys.modules['PIL.ImageGrab'] = MagicMock()
 sys.modules['cv2'] = MagicMock()
+sys.modules['pynput'] = MagicMock()
+sys.modules['pynput.mouse'] = MagicMock()
+sys.modules['pynput.keyboard'] = MagicMock()
 
 import os
 import unittest

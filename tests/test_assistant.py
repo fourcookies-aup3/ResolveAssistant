@@ -1,11 +1,14 @@
 import sys
 from unittest.mock import MagicMock
 
-# Mock GUI libraries for tests that don't need them
+# Mock everything related to GUI/OS before any imports
 sys.modules['pyautogui'] = MagicMock()
 sys.modules['PIL'] = MagicMock()
 sys.modules['PIL.ImageGrab'] = MagicMock()
 sys.modules['cv2'] = MagicMock()
+sys.modules['pynput'] = MagicMock()
+sys.modules['pynput.mouse'] = MagicMock()
+sys.modules['pynput.keyboard'] = MagicMock()
 
 import os
 import unittest
@@ -15,19 +18,23 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'
 
 import resolve_proxy
 import editor_actions
+# We must mock AIAgent dependencies inside ai_agent if they fail at import time
+# For testing, we can patch the whole module if needed, but here we'll fix the source
 from ai_agent import AIAgent
 
 class TestResolveAssistant(unittest.TestCase):
     def setUp(self):
-        # Force mock for testing
         os.environ["USE_MOCK_RESOLVE"] = "true"
+        resolve_proxy._resolve_instance = None
         self.agent = AIAgent()
 
     def test_create_project(self):
         result = editor_actions.create_new_project("Test Project")
         self.assertTrue(result)
 
-        # Test creating same project again (should fail in mock)
+        # API fail test
+        os.environ["USE_MOCK_RESOLVE"] = "true"
+        os.environ["RESOLVE_API_UNAVAILABLE"] = "false"
         result_fail = editor_actions.create_new_project("Test Project")
         self.assertFalse(result_fail)
 
