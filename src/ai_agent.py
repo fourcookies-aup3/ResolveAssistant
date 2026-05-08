@@ -10,7 +10,7 @@ class AIAgent:
     def process_command(self, command):
         """
         Translates natural language into editor actions.
-        Improved to handle basic multi-step commands and better argument extraction.
+        Updated to include UI automation and live-time control commands.
         """
         # Patterns use case-insensitive matching but we want to capture the original case for arguments
         patterns = [
@@ -18,15 +18,30 @@ class AIAgent:
             (r'(?i)import (.*)', self._handle_import),
             (r'(?i)create timeline (.*)', self._handle_create_timeline),
             (r'(?i)add (.*) to timeline', self._handle_add_to_timeline),
+            (r'(?i)switch to (.*) page', self._handle_switch_page),
+            (r'(?i)save project', self._handle_save_project),
+            (r'(?i)click (.*)', self._handle_click_ui),
+            (r'(?i)render', self._handle_render),
         ]
 
         for pattern, handler in patterns:
             match = re.search(pattern, command)
             if match:
-                arg = match.group(1).strip()
-                return handler(arg)
+                if match.groups():
+                    arg = match.group(1).strip()
+                    return handler(arg)
+                else:
+                    return handler()
 
-        return "I'm sorry, I don't understand that command yet. Try:\n- create project [name]\n- import [path]\n- create timeline [name]\n- add [clip name] to timeline"
+        return ("I'm sorry, I don't understand that command yet. Try:\n"
+                "- create project [name]\n"
+                "- import [path]\n"
+                "- create timeline [name]\n"
+                "- add [clip name] to timeline\n"
+                "- switch to [media|edit|color|deliver] page\n"
+                "- save project\n"
+                "- click [button name]\n"
+                "- render")
 
     def _handle_create_project(self, name):
         editor_actions.create_new_project(name)
@@ -41,13 +56,31 @@ class AIAgent:
         return f"Created timeline: {name}"
 
     def _handle_add_to_timeline(self, clip_name):
-        # Could be multiple clips separated by comma or 'and'
         clip_names = [c.strip() for c in re.split(r',| and |(?i) and ', clip_name)]
         success = editor_actions.add_clips_to_timeline(clip_names)
         if success:
             return f"Added {clip_name} to timeline."
         else:
             return f"Failed to add {clip_name} to timeline. Make sure clips are imported."
+
+    def _handle_switch_page(self, page):
+        editor_actions.switch_to_page(page)
+        return f"Switched to {page} page."
+
+    def _handle_save_project(self):
+        editor_actions.save_project()
+        return "Saving project..."
+
+    def _handle_click_ui(self, element):
+        success = editor_actions.click_ui_element(element)
+        if success:
+            return f"Clicked {element}."
+        else:
+            return f"Failed to find or click {element}."
+
+    def _handle_render(self):
+        editor_actions.render_project()
+        return "Starting render process..."
 
     def execute_plan(self, plan_json):
         """

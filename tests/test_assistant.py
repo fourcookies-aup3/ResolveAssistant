@@ -1,4 +1,12 @@
 import sys
+from unittest.mock import MagicMock
+
+# Mock GUI libraries for tests that don't need them
+sys.modules['pyautogui'] = MagicMock()
+sys.modules['PIL'] = MagicMock()
+sys.modules['PIL.ImageGrab'] = MagicMock()
+sys.modules['cv2'] = MagicMock()
+
 import os
 import unittest
 

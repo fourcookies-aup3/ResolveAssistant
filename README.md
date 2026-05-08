@@ -1,22 +1,24 @@
 # ResolveAssistant
 
-An AI-powered video editing assistant for DaVinci Resolve.
+An AI-powered video editing assistant for DaVinci Resolve with Screen Vision and Live Control.
 
 ## Features
-- Natural language command processing to control DaVinci Resolve.
-- Project creation, media import, and timeline management.
-- Proxy layer to handle connection to the Resolve Scripting API.
-- Mock mode for development without Resolve installed.
+- **Scripting API Integration**: Direct control via Resolve's Python API.
+- **Computer Vision**: Sees your screen to find UI elements using OpenCV.
+- **Live Control**: Automates mouse and keyboard for real-time editing.
+- **Natural Language**: Process commands like "click the render button" or "save project".
+- **Mock Mode**: Full development and testing support without requiring a Resolve installation.
 
 ## Prerequisites
-- DaVinci Resolve Studio (Scripting API is generally a Studio-only feature).
+- DaVinci Resolve Studio (Scripting API is required).
 - Python 3.6 or higher.
-- Ensure "External scripting using" is set to "Local" or "Network" in Resolve Preferences -> System -> General.
+- `pip install pyautogui opencv-python pillow`
+- **Important**: Ensure "External scripting using" is set to "Local" or "Network" in Resolve Preferences -> System -> General.
 
 ## Setup
 
 ### Environment Variables
-For the assistant to find the DaVinci Resolve API, you need to set the following environment variables (adjust paths based on your installation):
+Configure these to point to your Resolve installation:
 
 **Windows:**
 ```cmd
@@ -32,13 +34,6 @@ export RESOLVE_SCRIPT_LIB="/Applications/DaVinci Resolve/DaVinci Resolve.app/Con
 export PYTHONPATH="$PYTHONPATH:$RESOLVE_SCRIPT_API/Modules/"
 ```
 
-**Linux:**
-```bash
-export RESOLVE_SCRIPT_API="/opt/resolve/Developer/Scripting/"
-export RESOLVE_SCRIPT_LIB="/opt/resolve/libs/Fusion/fusionscript.so"
-export PYTHONPATH="$PYTHONPATH:$RESOLVE_SCRIPT_API/Modules/"
-```
-
 ## Usage
 
 Run the assistant:
@@ -47,12 +42,19 @@ python3 src/main.py
 ```
 
 ### Example Commands
-- `create project My Awesome Video`
-- `import /path/to/video/clip1.mp4`
-- `create timeline Main Edit`
+- `create project My Movie`
+- `switch to edit page`
+- `click export_button` (requires template image in `assets/templates/export_button.png`)
+- `save project`
+- `render`
+
+## Live Control & Vision
+The assistant uses `PyAutoGUI` for mouse/keyboard control and `OpenCV` for template matching.
+- Template images should be placed in `assets/templates/`.
+- Screen capturing is handled by `Pillow`.
 
 ## Development
-To run in mock mode (without Resolve):
+Run in mock mode:
 ```bash
 export USE_MOCK_RESOLVE=true
 python3 src/main.py
@@ -61,4 +63,5 @@ python3 src/main.py
 ### Running Tests
 ```bash
 python3 tests/test_assistant.py
+python3 tests/test_advanced.py
 ```
