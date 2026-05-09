@@ -1,52 +1,44 @@
-# ResolveAssistant v2.0 (BOOSTED)
+# ResolveAssistant v3.0 (PRECISION)
 
-An AI-powered video editing assistant for DaVinci Resolve with **Supercharged Speed**, **Full Creative Learning**, and **Footage-Aware Decision Making**.
+An AI-powered video editing assistant for DaVinci Resolve with **High-Precision Vision (OCR)**, **Verification-Based Automation**, and **Comprehensive Task Orchestration**.
 
 ## Features
-- **Supercharged Speed**: Near-instant UI automation and optimized Computer Vision.
-- **Full Editing Training**: The AI now researches all editing techniques, including cutting, speed ramping, transitions, and audio mixing.
-- **Brain Engine**: Automatically decides which professional "tricks" to apply based on visual analysis of your footage (e.g., dynamic zoom for slow scenes, exposure boost for dark scenes).
-- **Infinite Learning**: Researches YouTube and professional tutorials in the background until stopped.
-- **Universal Support**: Native support for the Free version of DaVinci Resolve via Vision/Hotkey tiers.
+- **High-Precision Vision**: Integrated OCR (Tesseract) allows the AI to read labels, timecodes, and menu items directly from your screen.
+- **Verification-Based Macros**: Every click and keystroke is verified against the UI state. The AI won't type until it "sees" the correct dialog is open.
+- **Professional Orchestrator**: The Brain Engine (v3.0) now handles complex multi-step task graphs, mapping visual footage analysis to specific professional parameters.
+- **High-Fidelity Learning**: Training Mode captures not just visual frames, but full UI layouts and text labels to build a comprehensive editing knowledge base.
+- **Universal & Resilient**: Deep integration for the Free version with tiered fallbacks (API -> OCR Vision -> Template Matching -> Hotkeys).
 
 ## Setup
 
 ### Prerequisites
 - DaVinci Resolve (Studio or Free).
 - Python 3.6 or higher.
-- `pip install pyautogui opencv-python pillow sqlalchemy pynput`
+- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) installed on your system.
+- `pip install -r requirements.txt`
 
-## Advanced Command & Control
+## Advanced Command System
 
-### 1. Boosted Auto-Edit (`auto edit [project name]`)
-The AI builds a full professional edit sequence at high speed. It analyzes each frame to apply:
-- **Exposure Boosts** for dark clips.
-- **Teal & Orange** cinematic grades for specific color profiles.
-- **Dynamic Zoom** and **Transitions** learned from its knowledge base.
+### 1. Precision Auto-Edit (`auto edit [project name]`)
+The AI performs a comprehensive professional edit by:
+- Creating a verified project structure.
+- Reading UI labels to ensure correct media ingestion.
+- Orchestrating a sequence of "Tricks" (e.g., dynamic range compression, exposure correction) based on deep visual analysis.
 
-### 2. Broad Training Mode (`train`)
-The AI opens multiple professional resource channels and begins researching all aspects of video editing.
-```bash
-ResolveAI (LIVE)> train
-# AI starts researching transitions, speed ramps, and cutting tricks...
-ResolveAI (LIVE)> stop training
-```
+### 2. High-Fidelity Training (`train`)
+The AI researches professional workflows by "watching" tutorials and simultaneously "reading" the UI labels in those videos to understand the relationship between actions and screen states.
 
-### 3. Brain Status (`status`)
-Check the current state of the AI's decision engine and automation speed.
-```bash
-ResolveAI (LIVE)> status
-```
+### 3. State-Aware Control
+The AI now understands *context*. For example, if you say `switch to color page`, it verifies it has actually reached that page before attempting any grading commands.
 
-## How the Brain Works
-The assistant uses the **Brain Decision Engine** (`src/brain.py`) to map vision-based analysis (brightness, dominant color, motion) to a library of learned "Tricks". This allows the AI to edit your video not just automatically, but *stylistically*.
+## Troubleshooting & Calibration
+- **Calibration**: Use `python src/setup_assistant.py [name]` to capture high-res templates.
+- **OCR Issues**: Ensure DaVinci Resolve is not obscured by other windows for best reading accuracy.
 
 ## Development & Testing
+Run the comprehensive test suite (7 suites):
 ```bash
-python tests/test_assistant.py
-python tests/test_advanced.py
-python tests/test_free_version.py
-python tests/test_live.py
-python tests/test_professional.py
-python tests/test_learning.py
+python3 tests/test_precision.py
+python3 tests/test_assistant.py
+# ... and others
 ```

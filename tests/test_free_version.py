@@ -1,14 +1,24 @@
 import sys
 from unittest.mock import MagicMock
 
-# Mock GUI libraries
-sys.modules['pyautogui'] = MagicMock()
-sys.modules['PIL'] = MagicMock()
-sys.modules['PIL.ImageGrab'] = MagicMock()
-sys.modules['cv2'] = MagicMock()
+# Mock Setup
+mock_pyautogui = MagicMock()
+mock_pil = MagicMock()
+mock_cv2 = MagicMock()
+mock_tesseract = MagicMock()
+
+import numpy as np
+mock_cv2.threshold.return_value = (None, np.zeros((10,10)))
+mock_cv2.cvtColor.return_value = np.zeros((10,10))
+mock_tesseract.image_to_string.return_value = "Project Manager"
+
+sys.modules['pyautogui'] = mock_pyautogui
+sys.modules['PIL'] = mock_pil
+sys.modules['PIL.ImageGrab'] = mock_pil.ImageGrab
+sys.modules['cv2'] = mock_cv2
 sys.modules['pynput'] = MagicMock()
-sys.modules['pynput.mouse'] = MagicMock()
-sys.modules['pynput.keyboard'] = MagicMock()
+sys.modules['webbrowser'] = MagicMock()
+sys.modules['pytesseract'] = mock_tesseract
 
 import os
 import unittest
@@ -22,9 +32,7 @@ from ai_agent import AIAgent
 
 class TestFreeVersionSupport(unittest.TestCase):
     def setUp(self):
-        # Force API Unavailable for these tests
         os.environ["RESOLVE_API_UNAVAILABLE"] = "true"
-        # Reset the resolve instance
         resolve_proxy._resolve_instance = None
         self.agent = AIAgent()
 
@@ -32,14 +40,11 @@ class TestFreeVersionSupport(unittest.TestCase):
         self.assertFalse(resolve_proxy.is_api_available())
 
     def test_create_project_fallback(self):
-        import pyautogui
-        # We need to mock click_ui_element because it tries to find an image
         with unittest.mock.patch('editor_actions.click_ui_element') as mock_click:
             mock_click.return_value = True
             result = editor_actions.create_new_project("Free Project")
             self.assertTrue(result)
-            # Verify hotkey was called (Shift+1 to open project manager)
-            pyautogui.hotkey.assert_any_call('shift', '1')
+            mock_pyautogui.hotkey.assert_any_call('shift', '1')
 
     def test_ai_agent_feedback(self):
         with unittest.mock.patch('editor_actions.click_ui_element') as mock_click:
