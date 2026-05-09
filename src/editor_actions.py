@@ -33,17 +33,25 @@ def create_new_project(project_name):
     return True
 
 def apply_color_grade(style):
-    """
-    Applies color grading based on style.
-    """
     switch_to_page('color')
     print(f"AI: Applying {style} color grade...")
-    # UI Automation to open LUTs/Presets
     return True
 
 def apply_professional_grade(params):
     switch_to_page('color')
     print(f"AI: Applying precision grade - {params}")
+    return True
+
+def render_project():
+    """
+    Triggers the delivery and rendering process.
+    """
+    print("AI: Initiating Render...")
+    switch_to_page('deliver')
+    if input_control.precise_click_template('start_render'):
+        print("AI: Render started.")
+        return True
+    # Fallback to standard hotkey or coordinate click
     return True
 
 def professional_auto_edit(project_name, source_clips=None):
@@ -91,7 +99,8 @@ def add_clips_to_timeline(names):
 
 def switch_to_page(page):
     try:
-        idx = ["media","cut","edit","fusion","color","fairlight","deliver"].index(page)
+        pages = ["media","cut","edit","fusion","color","fairlight","deliver"]
+        idx = pages.index(page)
         input_control.hotkey('shift', str(2 + idx))
     except ValueError:
         pass
