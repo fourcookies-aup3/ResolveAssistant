@@ -2,6 +2,7 @@ import pyautogui
 
 # Safety features
 pyautogui.FAILSAFE = True
+pyautogui.PAUSE = 0.1 # Reduced pause for faster execution
 
 def click(x, y):
     """
@@ -31,4 +32,4 @@ def move_to(x, y):
     """
     Moves the mouse to specified coordinates.
     """
-    pyautogui.moveTo(x, y, duration=0.2)
+    pyautogui.moveTo(x, y, duration=0) # Instant movement
