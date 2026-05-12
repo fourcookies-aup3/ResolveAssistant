@@ -1,0 +1,3 @@
+## 2025-05-15 - [Optimization] Hash map for clip lookup in add_clips_to_timeline
+**Learning:** The previous implementation of `add_clips_to_timeline` used a nested loop (O(N*M)) to match clip names against the media pool items. This caused a measurable slowdown when dealing with a large number of clips (e.g., 1000 clips took ~0.64s in a mock environment). By indexing the media pool clips in a dictionary (hash map) first (O(M)), and then performing lookups (O(1) each), the total complexity was reduced to O(N+M).
+**Action:** Use hash maps/dictionaries for frequent lookups in collections, especially when dealing with lists that can grow large, to avoid quadratic performance degradation.
