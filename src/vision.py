@@ -3,6 +3,9 @@ import numpy as np
 from PIL import ImageGrab
 import os
 
+# Cache for loaded templates to avoid redundant disk I/O
+_template_cache = {}
+
 def capture_screen():
     """
     Captures the primary monitor and returns an OpenCV image (BGR).
@@ -29,7 +32,17 @@ def find_image_on_screen(template_path, threshold=0.8):
     if screen is None:
         return None
 
-    template = cv2.imread(template_path)
+    # Use cached template if available to avoid redundant disk I/O
+    if template_path in _template_cache:
+        template = _template_cache[template_path]
+    else:
+        template = cv2.imread(template_path)
+        if template is not None:
+            _template_cache[template_path] = template
+        else:
+            print(f"Failed to load template: {template_path}")
+            return None
+
     res = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
