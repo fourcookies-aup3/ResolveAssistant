@@ -4,6 +4,7 @@ import input_control
 import os
 import sys
 
+
 def create_new_project(project_name):
     if is_api_available():
         resolve = get_resolve()
@@ -14,7 +15,8 @@ def create_new_project(project_name):
             return True
 
     # Fallback to UI Automation
-    print(f"API unavailable. Attempting to create project '{project_name}' via UI automation.")
+    print(f"API unavailable. Attempting to create project '{project_name}' "
+          f"via UI automation.")
     # Step 1: Open Project Manager (Shift+1)
     input_control.hotkey('shift', '1')
     # Step 2: Click 'New Project' button (needs template)
@@ -23,6 +25,7 @@ def create_new_project(project_name):
         input_control.press_key('enter')
         return True
     return False
+
 
 def import_media(file_paths):
     if is_api_available():
@@ -47,6 +50,7 @@ def import_media(file_paths):
         input_control.press_key('enter')
     return True
 
+
 def create_timeline(timeline_name):
     if is_api_available():
         resolve = get_resolve()
@@ -60,7 +64,8 @@ def create_timeline(timeline_name):
                 return timeline
 
     # Fallback
-    print(f"API unavailable. Creating timeline '{timeline_name}' via UI automation.")
+    print(f"API unavailable. Creating timeline '{timeline_name}' via "
+          f"UI automation.")
     if sys.platform == 'darwin':
         input_control.hotkey('command', 'n')
     else:
@@ -68,6 +73,7 @@ def create_timeline(timeline_name):
     input_control.type_text(timeline_name)
     input_control.press_key('enter')
     return True
+
 
 def list_clips_in_media_pool():
     if is_api_available():
@@ -79,6 +85,7 @@ def list_clips_in_media_pool():
             root_folder = mp.GetRootFolder()
             return root_folder.GetClipList()
     return []
+
 
 def add_clips_to_timeline(clip_names):
     if is_api_available():
@@ -92,12 +99,24 @@ def add_clips_to_timeline(clip_names):
 
             mp = project.GetMediaPool()
             all_clips = list_clips_in_media_pool()
+
+            # Optimization: Use a hash map for O(1) lookup
+            # This reduces complexity from O(N*M) to O(N+M)
+            clip_map = {}
+            for clip in all_clips:
+                name = clip.GetName()
+                if name not in clip_map:
+                    clip_map[name] = clip
+                if hasattr(clip, 'path'):
+                    base_name = os.path.basename(clip.path)
+                    if base_name not in clip_map:
+                        clip_map[base_name] = clip
+
             clips_to_add = []
             for name in clip_names:
-                for clip in all_clips:
-                    if clip.GetName() == name or (hasattr(clip, 'path') and os.path.basename(clip.path) == name):
-                        clips_to_add.append(clip)
-                        break
+                if name in clip_map:
+                    clips_to_add.append(clip_map[name])
+
             if clips_to_add:
                 return mp.AppendToTimeline(clips_to_add)
 
@@ -106,8 +125,9 @@ def add_clips_to_timeline(clip_names):
     for name in clip_names:
         # Assuming clip is selected or can be found by typing
         input_control.type_text(name)
-        input_control.press_key('f12') # 'Append to end of timeline' hotkey
+        input_control.press_key('f12')  # 'Append to end of timeline' hotkey
     return True
+
 
 # --- UI Automation Actions ---
 
@@ -133,6 +153,7 @@ def switch_to_page(page_name):
     print(f"Switched to page: {page_name}")
     return True
 
+
 def save_project():
     if sys.platform == 'darwin':
         input_control.hotkey('command', 's')
@@ -140,6 +161,7 @@ def save_project():
         input_control.hotkey('ctrl', 's')
     print("Project saved.")
     return True
+
 
 def click_ui_element(template_name):
     template_path = os.path.join('assets', 'templates', f'{template_name}.png')
@@ -151,6 +173,7 @@ def click_ui_element(template_name):
     else:
         print(f"Could not find UI element: {template_name}")
         return False
+
 
 def render_project():
     switch_to_page('deliver')
