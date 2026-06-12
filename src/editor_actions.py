@@ -92,12 +92,24 @@ def add_clips_to_timeline(clip_names):
 
             mp = project.GetMediaPool()
             all_clips = list_clips_in_media_pool()
+
+            # Optimization: Create a hash map for O(1) clip lookup
+            # This reduces complexity from O(N*M) to O(N+M)
+            clip_map = {}
+            for clip in all_clips:
+                name = clip.GetName()
+                if name not in clip_map:
+                    clip_map[name] = clip
+                if hasattr(clip, 'path') and clip.path:
+                    basename = os.path.basename(clip.path)
+                    if basename not in clip_map:
+                        clip_map[basename] = clip
+
             clips_to_add = []
             for name in clip_names:
-                for clip in all_clips:
-                    if clip.GetName() == name or (hasattr(clip, 'path') and os.path.basename(clip.path) == name):
-                        clips_to_add.append(clip)
-                        break
+                if name in clip_map:
+                    clips_to_add.append(clip_map[name])
+
             if clips_to_add:
                 return mp.AppendToTimeline(clips_to_add)
 
