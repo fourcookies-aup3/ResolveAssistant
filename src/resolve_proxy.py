@@ -93,8 +93,10 @@ class MockMediaPool:
                 project.timelines.append(timeline)
         return timeline
 
-    def AppendToTimeline(self, *args):
-        print(f"Mock: Appending {len(args)} items to timeline.")
+    def AppendToTimeline(self, clips):
+        if not isinstance(clips, list):
+            clips = [clips]
+        print(f"Mock: Appending {len(clips)} items to timeline.")
         return True
 
 class MockFolder:
