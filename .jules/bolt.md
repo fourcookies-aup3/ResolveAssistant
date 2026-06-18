@@ -1,0 +1,3 @@
+## 2025-05-15 - Optimized clip addition with hash map lookup
+**Learning:** In scenarios where we need to match items from a large collection (e.g., 5000+ media pool clips) against a list of targets (e.g., 200 clips to add to timeline), a nested loop results in O(N*M) complexity, which becomes a significant bottleneck as the media pool grows. Using a hash map (dictionary) to pre-index the collection reduces complexity to O(N+M).
+**Action:** Always prefer hash map lookups over nested loops when matching items in large datasets, especially for UI-related or API-driven tasks involving the media pool.
