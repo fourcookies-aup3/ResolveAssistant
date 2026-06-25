@@ -1,4 +1,4 @@
-pyautogui
-opencv-python
-pillow
-pytest
+pyautogui>=0.9.54,<1.0.0
+opencv-python>=4.10.0.84,<5.0.0
+pillow>=10.4.0,<13.0.0
+pytest>=8.3.0,<10.0.0

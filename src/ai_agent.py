@@ -3,6 +3,20 @@ import json
 import re
 from resolve_proxy import is_api_available
 
+# Allowlist of functions permitted in execute_plan dispatch
+_ALLOWED_PLAN_FUNCTIONS = frozenset([
+    "create_new_project",
+    "import_media",
+    "create_timeline",
+    "add_clips_to_timeline",
+    "switch_to_page",
+    "save_project",
+    "click_ui_element",
+    "render_project",
+    "list_clips_in_media_pool",
+])
+
+
 class AIAgent:
     def __init__(self):
         # In a real implementation, this would connect to an LLM
@@ -94,8 +108,12 @@ class AIAgent:
             args = action.get("args", [])
             kwargs = action.get("kwargs", {})
 
-            if hasattr(editor_actions, func_name):
-                func = getattr(editor_actions, func_name)
+            if func_name not in _ALLOWED_PLAN_FUNCTIONS:
+                results.append({"action": func_name, "status": "failed", "error": "Function not allowed"})
+                continue
+
+            func = getattr(editor_actions, func_name, None)
+            if func is not None:
                 result = func(*args, **kwargs)
                 results.append({"action": func_name, "status": "success", "result": str(result)})
             else:

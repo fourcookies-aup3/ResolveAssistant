@@ -142,7 +142,12 @@ def save_project():
     return True
 
 def click_ui_element(template_name):
-    template_path = os.path.join('assets', 'templates', f'{template_name}.png')
+    # Sanitize template_name to prevent path traversal
+    safe_name = os.path.basename(template_name)
+    if safe_name != template_name or '..' in template_name:
+        print(f"Invalid template name: {template_name}")
+        return False
+    template_path = os.path.join('assets', 'templates', f'{safe_name}.png')
     coords = vision.find_image_on_screen(template_path)
     if coords:
         input_control.click(coords[0], coords[1])
