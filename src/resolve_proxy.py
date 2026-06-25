@@ -162,3 +162,27 @@ def is_api_available():
     if isinstance(res, MockResolve):
         return res.is_api_available
     return True
+
+
+def get_current_project():
+    """Returns the current project, or None if the API is unavailable."""
+    resolve = get_resolve()
+    if resolve is None:
+        return None
+    pm = resolve.GetProjectManager()
+    if pm is None:
+        return None
+    return pm.GetCurrentProject()
+
+
+def get_media_pool():
+    """Returns the current project's media pool, or None."""
+    project = get_current_project()
+    if project is None:
+        return None
+    return project.GetMediaPool()
+
+
+def get_mode_string():
+    """Returns a human-readable string for the current execution mode."""
+    return "API" if is_api_available() else "UI Automation"

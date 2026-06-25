@@ -1,7 +1,7 @@
 import editor_actions
 import json
 import re
-from resolve_proxy import is_api_available
+from resolve_proxy import get_mode_string
 
 class AIAgent:
     def __init__(self):
@@ -45,25 +45,21 @@ class AIAgent:
 
     def _handle_create_project(self, name):
         editor_actions.create_new_project(name)
-        mode = "API" if is_api_available() else "UI Automation"
-        return f"Created project: {name} (via {mode})"
+        return f"Created project: {name} (via {get_mode_string()})"
 
     def _handle_import(self, path):
         editor_actions.import_media([path])
-        mode = "API" if is_api_available() else "UI Automation"
-        return f"Imported media from: {path} (via {mode})"
+        return f"Imported media from: {path} (via {get_mode_string()})"
 
     def _handle_create_timeline(self, name):
         editor_actions.create_timeline(name)
-        mode = "API" if is_api_available() else "UI Automation"
-        return f"Created timeline: {name} (via {mode})"
+        return f"Created timeline: {name} (via {get_mode_string()})"
 
     def _handle_add_to_timeline(self, clip_name):
         clip_names = [c.strip() for c in re.split(r',| and |(?i) and ', clip_name)]
         success = editor_actions.add_clips_to_timeline(clip_names)
-        mode = "API" if is_api_available() else "UI Automation"
         if success:
-            return f"Added {clip_name} to timeline (via {mode})."
+            return f"Added {clip_name} to timeline (via {get_mode_string()})."
         else:
             return f"Failed to add {clip_name} to timeline. Make sure clips are imported."
 

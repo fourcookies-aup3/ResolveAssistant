@@ -1,7 +1,14 @@
+import sys
 import pyautogui
 
 # Safety features
 pyautogui.FAILSAFE = True
+
+
+def platform_hotkey(key):
+    """Presses modifier+key using Cmd on macOS and Ctrl elsewhere."""
+    modifier = 'command' if sys.platform == 'darwin' else 'ctrl'
+    hotkey(modifier, key)
 
 def click(x, y):
     """

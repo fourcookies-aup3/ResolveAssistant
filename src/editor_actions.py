@@ -1,8 +1,7 @@
-from resolve_proxy import get_resolve, is_api_available
+from resolve_proxy import get_resolve, is_api_available, get_current_project, get_media_pool
 import vision
 import input_control
 import os
-import sys
 
 def create_new_project(project_name):
     if is_api_available():
@@ -36,10 +35,7 @@ def import_media(file_paths):
     # Fallback to UI Automation
     print("API unavailable. Attempting to import media via UI automation.")
     for path in file_paths:
-        if sys.platform == 'darwin':
-            input_control.hotkey('command', 'i')
-        else:
-            input_control.hotkey('ctrl', 'i')
+        input_control.platform_hotkey('i')
 
         # This part is tricky as it opens a OS dialog.
         # Usually we would type the path and press enter.
@@ -49,11 +45,8 @@ def import_media(file_paths):
 
 def create_timeline(timeline_name):
     if is_api_available():
-        resolve = get_resolve()
-        pm = resolve.GetProjectManager()
-        project = pm.GetCurrentProject()
-        if project:
-            mp = project.GetMediaPool()
+        mp = get_media_pool()
+        if mp:
             timeline = mp.CreateEmptyTimeline(timeline_name)
             if timeline:
                 print(f"Timeline '{timeline_name}' created via API.")
@@ -61,30 +54,22 @@ def create_timeline(timeline_name):
 
     # Fallback
     print(f"API unavailable. Creating timeline '{timeline_name}' via UI automation.")
-    if sys.platform == 'darwin':
-        input_control.hotkey('command', 'n')
-    else:
-        input_control.hotkey('ctrl', 'n')
+    input_control.platform_hotkey('n')
     input_control.type_text(timeline_name)
     input_control.press_key('enter')
     return True
 
 def list_clips_in_media_pool():
     if is_api_available():
-        resolve = get_resolve()
-        pm = resolve.GetProjectManager()
-        project = pm.GetCurrentProject()
-        if project:
-            mp = project.GetMediaPool()
+        mp = get_media_pool()
+        if mp:
             root_folder = mp.GetRootFolder()
             return root_folder.GetClipList()
     return []
 
 def add_clips_to_timeline(clip_names):
     if is_api_available():
-        resolve = get_resolve()
-        pm = resolve.GetProjectManager()
-        project = pm.GetCurrentProject()
+        project = get_current_project()
         if project:
             timeline = project.GetCurrentTimeline()
             if not timeline:
@@ -134,10 +119,7 @@ def switch_to_page(page_name):
     return True
 
 def save_project():
-    if sys.platform == 'darwin':
-        input_control.hotkey('command', 's')
-    else:
-        input_control.hotkey('ctrl', 's')
+    input_control.platform_hotkey('s')
     print("Project saved.")
     return True
 
