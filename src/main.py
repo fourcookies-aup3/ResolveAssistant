@@ -23,6 +23,8 @@ def main():
             break
         except KeyboardInterrupt:
             break
+        except Exception as e:
+            print(f"Error processing command: {e}")
 
 if __name__ == "__main__":
     main()

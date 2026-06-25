@@ -30,7 +30,16 @@ def find_image_on_screen(template_path, threshold=0.8):
         return None
 
     template = cv2.imread(template_path)
-    res = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+    if template is None:
+        print(f"Error: Could not read template image: {template_path}")
+        return None
+
+    try:
+        res = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+    except Exception as e:
+        print(f"Error matching template '{template_path}': {e}")
+        return None
+
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
     if max_val >= threshold:

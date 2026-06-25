@@ -8,10 +8,16 @@ def create_new_project(project_name):
     if is_api_available():
         resolve = get_resolve()
         pm = resolve.GetProjectManager()
+        if not pm:
+            print(f"Error: Could not access Project Manager.")
+            return False
         project = pm.CreateProject(project_name)
         if project:
             print(f"Project '{project_name}' created successfully via API.")
             return True
+        else:
+            print(f"Failed to create project '{project_name}' via API (may already exist).")
+            return False
 
     # Fallback to UI Automation
     print(f"API unavailable. Attempting to create project '{project_name}' via UI automation.")
@@ -25,13 +31,23 @@ def create_new_project(project_name):
     return False
 
 def import_media(file_paths):
+    if not file_paths:
+        print("Error: No file paths provided for import.")
+        return False
+
     if is_api_available():
         resolve = get_resolve()
         ms = resolve.GetMediaStorage()
+        if not ms:
+            print("Error: Could not access Media Storage.")
+            return False
         clips = ms.AddItemListToMediaPool(file_paths)
         if clips:
             print(f"Imported {len(clips)} clips via API.")
             return clips
+        else:
+            print("Failed to import media via API.")
+            return False
 
     # Fallback to UI Automation
     print("API unavailable. Attempting to import media via UI automation.")
@@ -51,13 +67,21 @@ def create_timeline(timeline_name):
     if is_api_available():
         resolve = get_resolve()
         pm = resolve.GetProjectManager()
+        if not pm:
+            print("Error: Could not access Project Manager.")
+            return False
         project = pm.GetCurrentProject()
-        if project:
-            mp = project.GetMediaPool()
-            timeline = mp.CreateEmptyTimeline(timeline_name)
-            if timeline:
-                print(f"Timeline '{timeline_name}' created via API.")
-                return timeline
+        if not project:
+            print("Error: No project is currently open. Create or load a project first.")
+            return False
+        mp = project.GetMediaPool()
+        timeline = mp.CreateEmptyTimeline(timeline_name)
+        if timeline:
+            print(f"Timeline '{timeline_name}' created via API.")
+            return timeline
+        else:
+            print(f"Failed to create timeline '{timeline_name}' via API.")
+            return False
 
     # Fallback
     print(f"API unavailable. Creating timeline '{timeline_name}' via UI automation.")
@@ -73,6 +97,8 @@ def list_clips_in_media_pool():
     if is_api_available():
         resolve = get_resolve()
         pm = resolve.GetProjectManager()
+        if not pm:
+            return []
         project = pm.GetCurrentProject()
         if project:
             mp = project.GetMediaPool()
@@ -84,22 +110,34 @@ def add_clips_to_timeline(clip_names):
     if is_api_available():
         resolve = get_resolve()
         pm = resolve.GetProjectManager()
+        if not pm:
+            print("Error: Could not access Project Manager.")
+            return False
         project = pm.GetCurrentProject()
-        if project:
-            timeline = project.GetCurrentTimeline()
-            if not timeline:
-                timeline = create_timeline("Timeline 1")
+        if not project:
+            print("Error: No project is currently open.")
+            return False
 
-            mp = project.GetMediaPool()
-            all_clips = list_clips_in_media_pool()
-            clips_to_add = []
-            for name in clip_names:
-                for clip in all_clips:
-                    if clip.GetName() == name or (hasattr(clip, 'path') and os.path.basename(clip.path) == name):
-                        clips_to_add.append(clip)
-                        break
-            if clips_to_add:
-                return mp.AppendToTimeline(clips_to_add)
+        timeline = project.GetCurrentTimeline()
+        if not timeline:
+            timeline = create_timeline("Timeline 1")
+            if not timeline:
+                print("Error: Could not create a default timeline.")
+                return False
+
+        mp = project.GetMediaPool()
+        all_clips = list_clips_in_media_pool()
+        clips_to_add = []
+        for name in clip_names:
+            for clip in all_clips:
+                if clip.GetName() == name or (hasattr(clip, 'path') and os.path.basename(clip.path) == name):
+                    clips_to_add.append(clip)
+                    break
+        if clips_to_add:
+            return mp.AppendToTimeline(clips_to_add)
+        else:
+            print(f"No matching clips found in media pool for: {', '.join(clip_names)}")
+            return False
 
     # Fallback: Very basic UI automation (Drag and drop or F12)
     print("API unavailable. Adding clips via UI automation (F12).")
@@ -122,13 +160,16 @@ def switch_to_page(page_name):
         'deliver': 'shift+8'
     }
 
+    if page_name not in pages:
+        print(f"Error: Unknown page '{page_name}'. Valid pages: {', '.join(pages.keys())}")
+        return False
+
     if is_api_available():
         resolve = get_resolve()
         resolve.OpenPage(page_name)
 
-    if page_name in pages:
-        keys = pages[page_name].split('+')
-        input_control.hotkey(*keys)
+    keys = pages[page_name].split('+')
+    input_control.hotkey(*keys)
 
     print(f"Switched to page: {page_name}")
     return True
