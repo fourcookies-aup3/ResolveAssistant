@@ -1,0 +1,3 @@
+## 2025-05-15 - Grayscale Matching and Template Caching
+**Learning:** `cv2.matchTemplate` performance is significantly impacted by the number of channels and redundant disk I/O. In this codebase, `find_image_on_screen` was re-reading templates from disk and matching on full-color (3-channel) images, leading to ~1.2s latency per call. Converting both screen and template to grayscale (1-channel) and caching the grayscale templates in memory reduced latency to ~0.1s.
+**Action:** Always prefer grayscale matching for UI element detection unless color is a critical differentiator. Use module-level caching for assets that are frequently reused.
