@@ -59,7 +59,7 @@ class AIAgent:
         return f"Created timeline: {name} (via {mode})"
 
     def _handle_add_to_timeline(self, clip_name):
-        clip_names = [c.strip() for c in re.split(r',| and |(?i) and ', clip_name)]
+        clip_names = [c.strip() for c in re.split(r',| and ', clip_name, flags=re.IGNORECASE)]
         success = editor_actions.add_clips_to_timeline(clip_names)
         mode = "API" if is_api_available() else "UI Automation"
         if success:
