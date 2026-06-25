@@ -44,19 +44,25 @@ class AIAgent:
                 "- render")
 
     def _handle_create_project(self, name):
-        editor_actions.create_new_project(name)
+        result = editor_actions.create_new_project(name)
         mode = "API" if is_api_available() else "UI Automation"
-        return f"Created project: {name} (via {mode})"
+        if result:
+            return f"Created project: {name} (via {mode})"
+        return f"Failed to create project: {name} (via {mode})"
 
     def _handle_import(self, path):
-        editor_actions.import_media([path])
+        result = editor_actions.import_media([path])
         mode = "API" if is_api_available() else "UI Automation"
-        return f"Imported media from: {path} (via {mode})"
+        if result:
+            return f"Imported media from: {path} (via {mode})"
+        return f"Failed to import media from: {path}"
 
     def _handle_create_timeline(self, name):
-        editor_actions.create_timeline(name)
+        result = editor_actions.create_timeline(name)
         mode = "API" if is_api_available() else "UI Automation"
-        return f"Created timeline: {name} (via {mode})"
+        if result:
+            return f"Created timeline: {name} (via {mode})"
+        return f"Failed to create timeline: {name}"
 
     def _handle_add_to_timeline(self, clip_name):
         clip_names = [c.strip() for c in re.split(r',| and |(?i) and ', clip_name)]
@@ -68,12 +74,16 @@ class AIAgent:
             return f"Failed to add {clip_name} to timeline. Make sure clips are imported."
 
     def _handle_switch_page(self, page):
-        editor_actions.switch_to_page(page)
-        return f"Switched to {page} page."
+        result = editor_actions.switch_to_page(page)
+        if result:
+            return f"Switched to {page} page."
+        return f"Failed to switch to {page} page."
 
     def _handle_save_project(self):
-        editor_actions.save_project()
-        return "Saving project..."
+        result = editor_actions.save_project()
+        if result:
+            return "Saving project..."
+        return "Failed to save project."
 
     def _handle_click_ui(self, element):
         success = editor_actions.click_ui_element(element)
@@ -83,11 +93,17 @@ class AIAgent:
             return f"Failed to find or click {element}."
 
     def _handle_render(self):
-        editor_actions.render_project()
-        return "Starting render process..."
+        result = editor_actions.render_project()
+        if result:
+            return "Starting render process..."
+        return "Failed to start render process."
 
     def execute_plan(self, plan_json):
-        actions = json.loads(plan_json)
+        try:
+            actions = json.loads(plan_json)
+        except json.JSONDecodeError as e:
+            return [{"action": "parse_plan", "status": "failed", "error": f"Invalid JSON: {e}"}]
+
         results = []
         for action in actions:
             func_name = action.get("function")
@@ -96,8 +112,11 @@ class AIAgent:
 
             if hasattr(editor_actions, func_name):
                 func = getattr(editor_actions, func_name)
-                result = func(*args, **kwargs)
-                results.append({"action": func_name, "status": "success", "result": str(result)})
+                try:
+                    result = func(*args, **kwargs)
+                    results.append({"action": func_name, "status": "success", "result": str(result)})
+                except Exception as e:
+                    results.append({"action": func_name, "status": "failed", "error": str(e)})
             else:
                 results.append({"action": func_name, "status": "failed", "error": "Function not found"})
         return results
