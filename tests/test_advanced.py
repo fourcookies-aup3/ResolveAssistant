@@ -1,17 +1,8 @@
-import sys
-from unittest.mock import MagicMock
-
-# Mock pyautogui before it's imported by anything
-sys.modules['pyautogui'] = MagicMock()
-sys.modules['PIL'] = MagicMock()
-sys.modules['PIL.ImageGrab'] = MagicMock()
-sys.modules['cv2'] = MagicMock()
+import test_helpers  # noqa: F401 — shared mock setup for GUI libs and src path
 
 import os
 import unittest
-
-# Add src to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+from unittest.mock import MagicMock
 
 import vision
 import input_control

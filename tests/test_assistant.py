@@ -1,17 +1,7 @@
-import sys
-from unittest.mock import MagicMock
-
-# Mock GUI libraries for tests that don't need them
-sys.modules['pyautogui'] = MagicMock()
-sys.modules['PIL'] = MagicMock()
-sys.modules['PIL.ImageGrab'] = MagicMock()
-sys.modules['cv2'] = MagicMock()
+import test_helpers  # noqa: F401 — shared mock setup for GUI libs and src path
 
 import os
 import unittest
-
-# Add src to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 import resolve_proxy
 import editor_actions
