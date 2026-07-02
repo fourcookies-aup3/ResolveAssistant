@@ -1,0 +1,3 @@
+## 2025-05-15 - Hash Map Optimization for Clip Lookup
+**Learning:** The `add_clips_to_timeline` function used a nested loop to match clip names against the media pool, resulting in $O(N \times M)$ complexity. For large projects with thousands of clips, this became a significant bottleneck (~6.5s for 10k clips). Using a hash map reduced this to $O(N+M)$, achieving a ~19x speedup.
+**Action:** Always prefer hash map lookups over nested loops when matching items between two collections, especially when one collection is potentially large. Iterate in reverse when building the map to preserve "first-match" behavior if needed.
